@@ -1,9 +1,25 @@
 <?php
+
 class AuthController {
+
     public function register() {
         $data = $GLOBALS['request_data'];
+
+       
         if (empty($data['email']) || empty($data['password'])) {
             Response::json(["error" => "Email and password required"], 400);
+            return;
+        }
+
+        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            Response::json(["error" => "Invalid email format"], 400);
+            return;
+        }
+
+      
+        if (strlen($data['password']) < 8) {
+            Response::json(["error" => "Password must be at least 8 characters long"], 400);
+            return;
         }
 
         $userModel = new User();
@@ -17,19 +33,24 @@ class AuthController {
         }
     }
 
-  public function login() {
-    $data = $GLOBALS['request_data'];
-    $userModel = new User();
-    $user = $userModel->findByEmail($data['email']);
+    public function login() {
+        $data = $GLOBALS['request_data'];
+        
+     
+        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            Response::json(["error" => "Invalid email format"], 400);
+            return;
+        }
 
-    
-    if (!$user || !password_verify($data['password'], $user['password'])) {
-        Response::json(['error' => 'Invalid email or password'], 401);
-        return;
+        $userModel = new User();
+        $user = $userModel->findByEmail($data['email']);
+
+        if (!$user || !password_verify($data['password'], $user['password'])) {
+            Response::json(['error' => 'Invalid email or password'], 401);
+            return;
+        }
+
+        $token = JWT::generate(['user_id' => $user['id'], 'email' => $user['email']]);
+        Response::json(['token' => $token]);
     }
-
-    
-    $token = JWT::generate(['user_id' => $user['id'], 'email' => $user['email']]);
-    Response::json(['token' => $token]);
-}
 }

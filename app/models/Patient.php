@@ -1,5 +1,5 @@
 <?php
-// app/models/Patient.php
+
 
 class Patient {
     private $db;
@@ -9,7 +9,15 @@ class Patient {
     }
 
    
-// app/models/Patient.php
+public function findById($id) {
+    
+    $sql = "SELECT * FROM patients WHERE id = :id LIMIT 1";
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute(['id' => $id]);
+    
+  
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
 public function create($name, $age, $gender, $contact, $disease, $address) {
 
     $query = "INSERT INTO patients (name, age, gender, contact, disease, address) 
@@ -27,40 +35,33 @@ public function create($name, $age, $gender, $contact, $disease, $address) {
     ]);
 }
 
-public function update($id, $name, $age, $gender, $disease, $contact) {
+public function update($id, $name, $age, $gender, $disease, $contact, $address) {
   
-    $query = "UPDATE patients SET name = :name, age = :age, gender = :gender, disease = :disease, contact = :contact WHERE id = :id";
+    $query = "UPDATE patients SET name = :name, age = :age, gender = :gender, disease = :disease, contact = :contact, address = :address WHERE id = :id";
     $stmt = $this->db->prepare($query);
     
-   
     $stmt->bindParam(':name', $name);
     $stmt->bindParam(':age', $age);
     $stmt->bindParam(':gender', $gender);
     $stmt->bindParam(':disease', $disease);
     $stmt->bindParam(':contact', $contact);
+    $stmt->bindParam(':address', $address); 
     $stmt->bindParam(':id', $id);
     
     return $stmt->execute();
 }
 public function patchUpdate($id, $data) {
-    if (empty($data)) return false; //
+    $fields = [];
+    $params = [':id' => $id];
 
-    $fields = "";
     foreach ($data as $key => $value) {
-        $fields .= "$key = :$key, ";
+        $fields[] = "$key = :$key";
+        $params[":$key"] = $value;
     }
-    $fields = rtrim($fields, ", ");
 
-  
-    $query = "UPDATE patients SET $fields WHERE id = :id";
-    $stmt = $this->db->prepare($query);
-    
-    foreach ($data as $key => $value) {
-        $stmt->bindValue(":$key", $value);
-    }
-    $stmt->bindValue(":id", $id);
-    
-    return $stmt->execute();
+    $sql = "UPDATE patients SET " . implode(', ', $fields) . " WHERE id = :id";
+    $stmt = $this->db->prepare($sql);
+    return $stmt->execute($params);
 }
 public function delete($id) {
     

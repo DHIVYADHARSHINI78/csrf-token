@@ -9,7 +9,7 @@ if (file_exists($envFile)) {
     $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($lines as $line) {
         if (strpos(trim($line), '#') === 0) continue;
-        // Use explode to split name and value
+      
         $parts = explode('=', $line, 2);
         if (count($parts) === 2) {
             putenv(trim($parts[0]) . "=" . trim($parts[1]));
@@ -18,7 +18,7 @@ if (file_exists($envFile)) {
     }
 }
 
-// 3. Set Constants (Using your DB name: jwt_api)
+
 define('DB_HOST', $_ENV['DB_HOST'] ?? 'localhost');
 define('DB_NAME', 'jwt_api'); 
 define('DB_USER', $_ENV['DB_USER'] ?? 'root');

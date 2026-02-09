@@ -1,5 +1,4 @@
 <?php
-// app/core/Router.php
 
 class Router {
     private $routes = [];
@@ -12,22 +11,22 @@ class Router {
         $this->routes['GET'][$path] = ['controller' => $controller, 'method' => $method, 'protected' => $protected];
     }
 
+    public function put($path, $controller, $method, $protected = false) {
+        $this->routes['PUT'][$path] = ['controller' => $controller, 'method' => $method, 'protected' => $protected];
+    }
 
-public function put($path, $controller, $method, $protected = false) {
-    $this->routes['PUT'][$path] = ['controller' => $controller, 'method' => $method, 'protected' => $protected];
-}
-public function patch($path, $controller, $method, $protected = false) {
-    $this->routes['PATCH'][$path] = ['controller' => $controller, 'method' => $method, 'protected' => $protected];
-}
+    public function patch($path, $controller, $method, $protected = false) {
+        $this->routes['PATCH'][$path] = ['controller' => $controller, 'method' => $method, 'protected' => $protected];
+    }
 
-public function delete($path, $controller, $method, $protected = false) {
-    $this->routes['DELETE'][$path] = ['controller' => $controller, 'method' => $method, 'protected' => $protected];
-}
+    public function delete($path, $controller, $method, $protected = false) {
+        $this->routes['DELETE'][$path] = ['controller' => $controller, 'method' => $method, 'protected' => $protected];
+    }
+
     public function resolve() {
         $method = $_SERVER['REQUEST_METHOD'];
         $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-    
         $path = str_replace(['/JWT-Authentication/public', '/JWT-Authentication'], '', $uri);
 
         if (isset($this->routes[$method][$path])) {
@@ -42,7 +41,15 @@ public function delete($path, $controller, $method, $protected = false) {
             
             if (class_exists($controllerName)) {
                 $controller = new $controllerName();
-                $controller->$methodName();
+
+                if ($method === 'GET' && $path === '/api/patients' && isset($_GET['id'])) {
+                    $controller->show();
+                } else {
+                    
+                    $controller->$methodName();
+                }
+              
+
             } else {
                 header('Content-Type: application/json');
                 http_response_code(500);
