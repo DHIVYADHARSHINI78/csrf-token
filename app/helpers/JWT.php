@@ -1,62 +1,70 @@
 <?php
-
 class JWT {
-    
-    private static $secret; 
-
-    private static function getSecret() {
-        if (self::$secret) {
-            return self::$secret;
-        }
-
-        self::$secret = $_ENV['JWT_SECRET'] ?? null;
-        
-        if (!self::$secret) {
-            header('Content-Type: application/json');
-            http_response_code(500);
-            echo json_encode(['error' => 'JWT Secret key']);
-            exit;
-        }
-
-        return self::$secret;
-    }
-
-    public static function generate($payload) {
-        $payload['iat'] = time();
-        $payload['exp'] = time() + 3600; 
-
-        $header = json_encode(['typ' => 'JWT', 'alg' => 'HS256']);
-        
-        $base64Header = self::base64UrlEncode($header);
-        $base64Payload = self::base64UrlEncode(json_encode($payload));
-
-        $signature = hash_hmac('sha256', "$base64Header.$base64Payload", self::getSecret(), true);
-        $base64Signature = self::base64UrlEncode($signature);
-
-        return "$base64Header.$base64Payload.$base64Signature";
-    }
-
-    public static function validate($token) {
-        $parts = explode('.', $token);
-        
-        if (count($parts) !== 3) return false;
-
-        list($header, $payload, $signature) = $parts;
-        
-        $validSig = self::base64UrlEncode(hash_hmac('sha256', "$header.$payload", self::getSecret(), true));
-
-        if ($signature !== $validSig) return false;
-
-        $data = json_decode(base64_decode($payload), true);
-        
-        if (!isset($data['exp']) || $data['exp'] < time()) {
-            return false;
-        }
-
-        return $data;
-    }
 
     private static function base64UrlEncode($data) {
-        return str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($data));
+        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+    }
+
+    private static function base64UrlDecode($data) {
+        return base64_decode(strtr($data, '-_', '+/'));
+    }
+
+    private static function sign($header, $payload) {
+        $secret = JWT_SECRET;
+        return self::base64UrlEncode(
+            hash_hmac('sha256', "$header.$payload", $secret, true)
+        );
+    }
+
+    public static function generateAccessToken($user) {
+        $header = self::base64UrlEncode(json_encode(['typ'=>'JWT','alg'=>'HS256']));
+        
+        $payloadData = [
+            "user_id"=>$user['user_id'],
+            "email"=>$user['email'],
+            "type"=>"access",
+            "iat"=>time(),
+            "exp"=>time()+ACCESS_TOKEN_EXP
+        ];
+        
+        $payload = self::base64UrlEncode(json_encode($payloadData));
+        $signature = self::sign($header,$payload);
+
+        return "$header.$payload.$signature";
+    }
+
+    public static function generateRefreshToken($user) {
+        $header = self::base64UrlEncode(json_encode(['typ'=>'JWT','alg'=>'HS256']));
+        
+        $payloadData = [
+            "user_id"=>$user['user_id'],
+            "email"=>$user['email'],
+            "type"=>"refresh",
+            "iat"=>time(),
+            "exp"=>time()+REFRESH_TOKEN_EXP
+        ];
+        
+        $payload = self::base64UrlEncode(json_encode($payloadData));
+        $signature = self::sign($header,$payload);
+
+        return "$header.$payload.$signature";
+    }
+
+    public static function validate($token,$expectedType="access") {
+        $parts = explode('.', $token);
+        if(count($parts)!=3) return false;
+
+        list($header,$payload,$signature)=$parts;
+        $validSignature = self::sign($header,$payload);
+
+        if(!hash_equals($validSignature,$signature)) return false;
+
+        $payloadData=json_decode(self::base64UrlDecode($payload),true);
+        if(!$payloadData) return false;
+
+        if($payloadData['type']!=$expectedType) return false;
+        if($payloadData['exp'] < time()) return false;
+
+        return $payloadData;
     }
 }

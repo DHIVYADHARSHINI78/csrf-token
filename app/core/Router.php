@@ -23,6 +23,7 @@ class Router {
         $this->routes['DELETE'][$path] = ['controller' => $controller, 'method' => $method, 'protected' => $protected];
     }
 
+
     public function resolve() {
         $method = $_SERVER['REQUEST_METHOD'];
         $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
