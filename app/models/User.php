@@ -6,24 +6,44 @@ class User {
         $this->db = Database::getInstance();
     }
 
-    
-    public function updateRefreshToken($userId, $token) {
-        $stmt = $this->db->prepare("UPDATE users SET refresh_token = ? WHERE id = ?");
-        return $stmt->execute([$token, $userId]);
-    }
-public function storeRefreshToken($userId, $refreshToken) {
-    $stmt = $this->db->prepare("UPDATE users SET refresh_token=? WHERE id=?");
-    return $stmt->execute([$refreshToken, $userId]);
-}
+    public function storeRefreshToken($userId, $refreshToken) {
+     
+        $stmt1 = $this->db->prepare("DELETE FROM refresh_tokens WHERE user_id = ?");
+        $stmt1->execute([$userId]);
 
-    
-    public function findByRefreshToken($token) {
-        $stmt = $this->db->prepare("SELECT * FROM users WHERE refresh_token = ? LIMIT 1");
-        $stmt->execute([$token]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($refreshToken) {
+           
+            $tokenHash = password_hash($refreshToken, PASSWORD_BCRYPT);
+            
+          
+            $expiresAt = date('Y-m-d H:i:s', time() + (7 * 24 * 60 * 60));
+            
+          
+            $stmt3 = $this->db->prepare("INSERT INTO refresh_tokens (user_id, token_hash, expires_at) VALUES (?, ?, ?)");
+            return $stmt3->execute([$userId, $tokenHash, $expiresAt]);
+        }
+        return true;
     }
 
-   
+    public function findByRefreshToken($plainToken) {
+    
+        $sql = "SELECT rt.*, u.* FROM users u 
+                JOIN refresh_tokens rt ON u.id = rt.user_id 
+                WHERE rt.expires_at > NOW()";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        
+        foreach ($rows as $row) {
+            if (password_verify($plainToken, $row['token_hash'])) {
+                return $row; 
+            }
+        }
+        return null;
+    }
+
     public function create($name, $email, $password) {
         $stmt = $this->db->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
         return $stmt->execute([$name, $email, $password]);
