@@ -113,22 +113,23 @@ class PatientController {
         }
     }
 
+public function delete() {
+    $id = $_GET['id'] ?? null;
+    $userId = $GLOBALS['user']['user_id']; 
 
-    public function delete() {
-        $id = $_GET['id'] ?? null;
-        $userId = $GLOBALS['user']['user_id'];
-
-        if (!$id || !is_numeric($id)) {
-            Response::json(['error' => 'Valid ID required'], 400);
-            return;
-        }
-
-        $patientModel = new Patient();
-   
-        if ($patientModel->delete($id, $userId)) {
-            Response::json(['message' => 'Patient deleted successfully']);
-        } else {
-            Response::json(['error' => '403 Forbidden or Patient not found'], 403);
-        }
+    $patientModel = new Patient();
+    
+    
+    $patient = $patientModel->findById($id, $userId);
+    if (!$patient) {
+     
+        Response::json(['error' => 'Unauthorized access'], 403);
+        return;
     }
+
+    $patientModel->delete($id, $userId);
+    Response::json(['message' => 'Deleted successfully']);
+}
+
+    
 }

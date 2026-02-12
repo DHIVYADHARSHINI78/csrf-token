@@ -15,9 +15,7 @@ class User {
            
             $tokenHash = password_hash($refreshToken, PASSWORD_BCRYPT);
             
-          
-            $expiresAt = date('Y-m-d H:i:s', time() + (7 * 24 * 60 * 60));
-            
+       $expiresAt = date('Y-m-d H:i:s', time() + REFRESH_TOKEN_EXP);
           
             $stmt3 = $this->db->prepare("INSERT INTO refresh_tokens (user_id, token_hash, expires_at) VALUES (?, ?, ?)");
             return $stmt3->execute([$userId, $tokenHash, $expiresAt]);

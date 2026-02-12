@@ -45,19 +45,24 @@ class Patient {
         ]);
     }
 
-    
-    public function patchUpdate($id, $data, $userId) {
-        $fields = [];
-        $params = [':id' => $id, ':userId' => $userId];
-        foreach ($data as $key => $value) {
-            $fields[] = "$key = :$key";
-            $params[":$key"] = $value;
-        }
-        $sql = "UPDATE patients SET " . implode(', ', $fields) . " WHERE id = :id AND user_id = :userId";
-        $stmt = $this->db->prepare($sql);
-        return $stmt->execute($params);
-    }
+   
+public function patchUpdate($id, $data, $userId) {
 
+    unset($data['user_id']); 
+
+    $fields = [];
+    $params = [':id' => $id, ':userId' => $userId];
+    
+    foreach ($data as $key => $value) {
+        $fields[] = "$key = :$key";
+        $params[":$key"] = $value;
+    }
+    
+    
+    $sql = "UPDATE patients SET " . implode(', ', $fields) . " WHERE id = :id AND user_id = :userId";
+    $stmt = $this->db->prepare($sql);
+    return $stmt->execute($params);
+}
     
     public function delete($id, $userId) {
         $query = "DELETE FROM patients WHERE id = :id AND user_id = :userId";

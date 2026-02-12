@@ -43,7 +43,7 @@ class AuthController {
         
         $userModel->storeRefreshToken($user['id'], $refreshToken);
 
-        setcookie("refreshToken", $refreshToken, time() + (7 * 24 * 60 * 60), "/", "", false, true);
+        setcookie("refreshToken", $refreshToken, time() + REFRESH_TOKEN_EXP, "/", "", false, true);
 
         Response::json([
             "access_token" => $accessToken,
@@ -80,7 +80,7 @@ class AuthController {
   
         $userModel->storeRefreshToken($user['id'], $newRefreshToken);
 
-        setcookie("refreshToken", $newRefreshToken, time() + 604800, "/", "", false, true);
+       setcookie("refreshToken", $newRefreshToken, time() + REFRESH_TOKEN_EXP, "/", "", false, true);
 
         Response::json([
             "access_token" => $newAccessToken,
