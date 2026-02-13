@@ -19,9 +19,11 @@ CsrfMiddleware::handle();
   
 $router = new Router();
 
+
 $router->post('/api/register', 'AuthController', 'register');
 $router->post('/api/login', 'AuthController', 'login');
 $router->post('/api/refresh', 'AuthController', 'refresh');
+$router->post('/api/logout', 'AuthController', 'logout', false);
 $router->get('/api/patients', 'PatientController', 'index', true);
 $router->post('/api/patients', 'PatientController', 'create', true);
 $router->put('/api/patients', 'PatientController', 'update', true);

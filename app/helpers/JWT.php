@@ -66,4 +66,21 @@ class JWT {
 
         return $payloadData;
     }
+public static function validateSignatureAndType($token, $expectedType = "access") {
+    $parts = explode('.', $token);
+    if (count($parts) != 3) return false;
+
+    list($header, $payload, $signature) = $parts;
+    $validSignature = self::sign($header, $payload);
+
+    if (!hash_equals($validSignature, $signature)) return false;
+
+    $payloadData = json_decode(self::base64UrlDecode($payload), true);
+    if (!$payloadData) return false;
+
+    if ($payloadData['type'] != $expectedType) return false;
+
+    // Note: We skip the expiry check here (unlike validate())
+    return $payloadData;
+}
 }
