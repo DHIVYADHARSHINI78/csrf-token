@@ -16,23 +16,22 @@ class JWT {
         );
     }
 
-    public static function generateAccessToken($user) {
-        $header = self::base64UrlEncode(json_encode(['typ'=>'JWT','alg'=>'HS256']));
-        
-        $payloadData = [
-            "user_id"=>$user['user_id'],
-            "email"=>$user['email'],
-            "type"=>"access",
-            "iat"=>time(),
-            "exp"=>time()+ACCESS_TOKEN_EXP
-        ];
-        
-        $payload = self::base64UrlEncode(json_encode($payloadData));
-        $signature = self::sign($header,$payload);
-
-        return "$header.$payload.$signature";
-    }
-
+  public static function generateAccessToken($user) {
+    $header = self::base64UrlEncode(json_encode(['typ'=>'JWT','alg'=>'HS256']));
+    
+    $payloadData = [
+        "user_id" => $user['user_id'],
+        "email"   => $user['email'],
+        "rt_sig"  => $user['rt_sig'], 
+        "type"    => "access",
+        "iat"     => time(),
+        "exp"     => time() + ACCESS_TOKEN_EXP
+    ];
+    
+    $payload = self::base64UrlEncode(json_encode($payloadData));
+    $signature = self::sign($header, $payload);
+    return "$header.$payload.$signature";
+}
     public static function generateRefreshToken($user) {
         $header = self::base64UrlEncode(json_encode(['typ'=>'JWT','alg'=>'HS256']));
         

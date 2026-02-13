@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once dirname(__DIR__) . '/config/config.php';
 
 spl_autoload_register(function ($class) {
@@ -14,6 +15,7 @@ spl_autoload_register(function ($class) {
 });
 
 JsonMiddleware::handle();
+CsrfMiddleware::handle();
   
 $router = new Router();
 

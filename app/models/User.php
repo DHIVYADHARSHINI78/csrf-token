@@ -52,4 +52,10 @@ class User {
         $stmt->execute([$email]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+    public function getLatestTokenHash($userId) {
+    
+    $stmt = $this->db->prepare("SELECT token_hash FROM refresh_tokens WHERE user_id = ? ORDER BY id DESC LIMIT 1");
+    $stmt->execute([$userId]);
+    return $stmt->fetchColumn(); 
+}
 }
