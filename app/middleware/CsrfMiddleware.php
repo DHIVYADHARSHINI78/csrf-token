@@ -12,7 +12,7 @@ class CsrfMiddleware {
             }
         }
 
-        if (in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PUT', 'DELETE', 'PATCH'])) {
+        if (in_array($_SERVER['REQUEST_METHOD'], ['GET','POST', 'PUT', 'DELETE', 'PATCH'])) {
             $headers = getallheaders();
             $receivedToken = $headers['X-CSRF-Token'] ?? $headers['x-csrf-token'] ?? null;
             $storedToken = $_SESSION['csrf_token'] ?? null;
